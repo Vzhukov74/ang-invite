@@ -248,7 +248,7 @@
         const BOT_TOKEN = "9141020584:AAH_DCkUp4pQAzvdz3Bcxi-kfYWCiUG1w4s";
         const ADMIN_CHAT_ID = "76001944";
 
-        const tg = window.Telegram?.WebApp;
+        const tg = window.Telegram && window.Telegram.WebApp;
         if (tg) {
             tg.expand();
             tg.ready();
@@ -269,24 +269,27 @@
         }
 
         function trackEvent(actionText) {
-            if (!BOT_TOKEN || BOT_TOKEN.includes("ВСТАВЬТЕ")) return;
+            const token = BOT_TOKEN.trim();
+            const chatId = String(ADMIN_CHAT_ID).trim();
+            if (!token || token.includes("ВСТАВЬТЕ") || !chatId || chatId.includes("ВСТАВЬТЕ")) return;
 
-            const user = tg?.initDataUnsafe?.user;
+            const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
             const userName = user ? `${user.first_name || ''} (@${user.username || 'без юзернейма'})` : 'Гость из браузера';
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             
             const message = `📊 <b>Действие в приглашении</b>\n👤 Кто: ${userName}\n🕒 Время: ${time}\n👉 Событие: ${actionText}`;
+            const apiUrl = "https://telegram.org" + token + "/sendMessage";
 
-            fetch(`https://telegram.org{BOT_TOKEN}/sendMessage`, {
+            fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    chat_id: ADMIN_CHAT_ID,
+                    chat_id: chatId,
                     text: message,
                     parse_mode: 'HTML'
                 }),
                 keepalive: true
-            }).catch(() => {});
+            }).catch(err => console.error('Ошибка отправки лога:', err));
         }
 
         trackEvent("👀 Открыла приглашение!");
@@ -308,20 +311,17 @@
             noClickCount++;
 
             if (noClickCount === 1) {
-                // Первый клик: кнопка убегает 1 раз в безопасную зону экрана
                 trackEvent("🏃‍♀️ Попыталась нажать «Нет» (1-й раз — кнопка убежала)");
                 
                 btnNo.textContent = "Точно нет? 🥺";
                 btnYes.style.transform = "scale(1.08)";
 
-                // Аккуратно смещаем кнопку в сторону (влево/вправо и чуть вниз), не выходя за края телефона
                 const shiftX = (Math.random() > 0.5 ? 1 : -1) * 45;
                 const shiftY = 18;
                 btnNo.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
                 btnNo.style.background = "#ffe3e8";
                 btnNo.style.color = "#ff4d6d";
             } else {
-                // Второй клик: честно принимаем ответ "Нет"
                 trackEvent("💔 Нажала «Нет» второй раз (подтвердила отказ)");
                 
                 step1.classList.add('hidden');
@@ -329,7 +329,6 @@
             }
         });
 
-        // Нажатие кнопки "Да"
         btnYes.addEventListener('click', () => {
             const extraInfo = noClickCount > 0 ? "после 1 попытки нажать «Нет»" : "сразу с первого раза";
             trackEvent(`💖 Нажала «Да, с радостью!» (${extraInfo})`);
@@ -381,7 +380,6 @@
             datesGrid.appendChild(el);
         });
 
-        // Финальное подтверждение
         btnConfirm.addEventListener('click', () => {
             if (!selectedDate) return;
 
