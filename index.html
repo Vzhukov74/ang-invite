@@ -269,28 +269,21 @@
         }
 
         function trackEvent(actionText) {
-            const token = BOT_TOKEN.trim();
-            const chatId = String(ADMIN_CHAT_ID).trim();
-            if (!token || token.includes("ВСТАВЬТЕ") || !chatId || chatId.includes("ВСТАВЬТЕ")) return;
+                    const token = BOT_TOKEN.trim();
+                    const chatId = String(ADMIN_CHAT_ID).trim();
+                    if (!token || token.includes("ВСТАВЬТЕ") || !chatId || chatId.includes("ВСТАВЬТЕ")) return;
 
-            const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-            const userName = user ? `${user.first_name || ''} (@${user.username || 'без юзернейма'})` : 'Гость из браузера';
-            const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            
-            const message = `📊 <b>Действие в приглашении</b>\n👤 Кто: ${userName}\n🕒 Время: ${time}\n👉 Событие: ${actionText}`;
-            const apiUrl = "https://telegram.org" + token + "/sendMessage";
+                    const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
+                    const userName = user ? `${user.first_name || ''} (@${user.username || 'без юзернейма'})` : 'Гость из браузера (Safari/Web)';
+                    const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    
+                    const message = `📊 <b>Действие в приглашении</b>\n👤 Кто: ${userName}\n🕒 Время: ${time}\n👉 Событие: ${actionText}`;
+                    
+                    const host = ["api", "telegram", "org"].join(".");
+                    const url = `https://${host}/bot${token}/sendMessage?chat_id=${encodeURIComponent(chatId)}&text=${encodeURIComponent(message)}&parse_mode=HTML`;
 
-            fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: message,
-                    parse_mode: 'HTML'
-                }),
-                keepalive: true
-            }).catch(err => console.error('Ошибка отправки лога:', err));
-        }
+                    fetch(url, { mode: 'no-cors', keepalive: true }).catch(() => {});
+                }
 
         trackEvent("👀 Открыла приглашение!");
 
