@@ -24,32 +24,38 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        body {
+        html, body {
             background: var(--bg-gradient);
             color: var(--text-main);
-            min-height: 100vh;
+            min-height: 100dvh;
+            width: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        body {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            overflow: hidden;
+            padding: 16px;
         }
 
         .card {
             background: var(--card-bg);
-            border-radius: 28px;
-            padding: 32px 24px;
+            border-radius: 26px;
+            padding: 24px 20px;
             width: 100%;
             max-width: 400px;
             box-shadow: 0 20px 40px rgba(255, 77, 109, 0.15);
             text-align: center;
             position: relative;
             z-index: 2;
+            margin: auto;
         }
 
         .emoji-header {
-            font-size: 56px;
-            margin-bottom: 16px;
+            font-size: 46px;
+            margin-bottom: 10px;
             animation: pulse 2s infinite;
         }
 
@@ -60,32 +66,32 @@
         }
 
         h1 {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
-            line-height: 1.35;
-            margin-bottom: 12px;
+            line-height: 1.3;
+            margin-bottom: 8px;
         }
 
         p.subtitle {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
-            margin-bottom: 28px;
-            line-height: 1.5;
+            margin-bottom: 18px;
+            line-height: 1.45;
         }
 
         .buttons-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
             align-items: center;
             justify-content: center;
-            min-height: 124px;
+            min-height: 116px;
         }
 
         .btn {
             border: none;
             border-radius: 16px;
-            padding: 16px 24px;
+            padding: 15px 24px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -118,15 +124,15 @@
         .dates-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 24px;
+            gap: 8px;
+            margin-bottom: 16px;
         }
 
         .date-item {
             background: #fff;
             border: 2px solid #ffe3e8;
-            border-radius: 16px;
-            padding: 12px 8px;
+            border-radius: 14px;
+            padding: 9px 6px;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
@@ -154,13 +160,13 @@
         }
 
         .date-num {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
 
         .day-name {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
             font-weight: 500;
         }
@@ -269,21 +275,22 @@
         }
 
         function trackEvent(actionText) {
-                    const token = BOT_TOKEN.trim();
-                    const chatId = String(ADMIN_CHAT_ID).trim();
-                    if (!token || token.includes("ВСТАВЬТЕ") || !chatId || chatId.includes("ВСТАВЬТЕ")) return;
+            const token = BOT_TOKEN.trim();
+            const chatId = String(ADMIN_CHAT_ID).trim();
+            if (!token || token.includes("9141020584:AAH_DCkUp4pQAzvdz3Bcxi-kfYWCiUG1w4s") || !chatId || chatId.includes("76001944")) return;
 
-                    const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-                    const userName = user ? `${user.first_name || ''} (@${user.username || 'без юзернейма'})` : 'Гость из браузера (Safari/Web)';
-                    const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    
-                    const message = `📊 <b>Действие в приглашении</b>\n👤 Кто: ${userName}\n🕒 Время: ${time}\n👉 Событие: ${actionText}`;
-                    
-                    const host = ["api", "telegram", "org"].join(".");
-                    const url = `https://${host}/bot${token}/sendMessage?chat_id=${encodeURIComponent(chatId)}&text=${encodeURIComponent(message)}&parse_mode=HTML`;
+            const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
+            const userName = user ? `${user.first_name || ''} (@${user.username || 'без юзернейма'})` : 'Гость из браузера (Safari/Web)';
+            const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            const message = `📊 <b>Действие в приглашении</b>\n👤 Кто: ${userName}\n🕒 Время: ${time}\n👉 Событие: ${actionText}`;
+            
+            const host = ["api", "telegram", "org"].join(".");
+            const url = `https://${host}/bot${token}/sendMessage?chat_id=${encodeURIComponent(chatId)}&text=${encodeURIComponent(message)}&parse_mode=HTML`;
 
-                    fetch(url, { mode: 'no-cors', keepalive: true }).catch(() => {});
-                }
+            fetch(url, { mode: 'no-cors', keepalive: true }).catch(() => {});
+        }
+
 
         trackEvent("👀 Открыла приглашение!");
 
@@ -329,6 +336,7 @@
             launchConfetti(40);
             step1.classList.add('hidden');
             step2.classList.remove('hidden');
+            window.scrollTo(0, 0);
         });
 
         // Календарь на 13-22 ноября 2026
@@ -382,8 +390,8 @@
             step2.classList.add('hidden');
             step3.classList.remove('hidden');
             finalText.innerHTML = `Жду нашей встречи <b>${selectedDate}</b>! Влад уже получил твой ответ ❤️`;
+            window.scrollTo(0, 0);
         });
     </script>
 </body>
 </html>
-
