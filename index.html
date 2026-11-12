@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Приглашение для Анжелики</title>
+    <title>Приглашение для Анджелики</title>
     <script src="https://telegram.org"></script>
-    <script src="https://jsdelivr.net"></script>
-    <link href="https://googleapis.com" rel="stylesheet">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #fff0f3 0%, #ffe3e8 100%);
-            --card-bg: rgba(255, 255, 255, 0.92);
+            --card-bg: rgba(255, 255, 255, 0.95);
             --primary: #ff4d6d;
-            --primary-hover: #ff2a51;
             --text-main: #2b2d42;
             --text-muted: #8d99ae;
             --disabled-bg: #e9ecef;
@@ -23,7 +20,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Montserrat', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -40,15 +37,14 @@
 
         .card {
             background: var(--card-bg);
-            backdrop-filter: blur(10px);
             border-radius: 28px;
             padding: 32px 24px;
             width: 100%;
             max-width: 400px;
             box-shadow: 0 20px 40px rgba(255, 77, 109, 0.15);
             text-align: center;
-            transition: all 0.4s ease;
             position: relative;
+            z-index: 2;
         }
 
         .emoji-header {
@@ -81,22 +77,21 @@
             display: flex;
             flex-direction: column;
             gap: 14px;
-            position: relative;
-            min-height: 120px;
             align-items: center;
             justify-content: center;
+            min-height: 124px;
         }
 
         .btn {
             border: none;
             border-radius: 16px;
-            padding: 16px 32px;
+            padding: 16px 24px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             width: 100%;
-            max-width: 240px;
+            max-width: 260px;
         }
 
         .btn-yes {
@@ -113,11 +108,7 @@
         .btn-no {
             background: #f1f3f5;
             color: var(--text-muted);
-            position: relative;
             z-index: 10;
-            transition: left 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), 
-                        top 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        transform 0.2s;
         }
 
         .hidden {
@@ -141,11 +132,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        .date-item:not(.disabled):hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
         }
 
         .date-item.selected {
@@ -197,6 +183,23 @@
             pointer-events: auto;
             box-shadow: 0 8px 20px rgba(255, 77, 109, 0.35);
         }
+
+        .confetti-piece {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            z-index: 999;
+            pointer-events: none;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(105vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -204,7 +207,7 @@
     <!-- ШАГ 1: Вопрос -->
     <div class="card" id="step-1">
         <div class="emoji-header">💌</div>
-        <h1>Анжелика, хочешь увидеться с Владом?</h1>
+        <h1>Анджелика, хочешь увидеться с Владом?</h1>
         <p class="subtitle">Обещаю отличный вечер, вкусную еду и хорошее настроение ✨</p>
         
         <div class="buttons-wrapper">
@@ -224,11 +227,18 @@
         <button class="btn btn-confirm" id="btn-confirm">Подтвердить дату ✨</button>
     </div>
 
-    <!-- ШАГ 3: Финал -->
+    <!-- ШАГ 3: Финал (Согласие) -->
     <div class="card hidden" id="step-3">
         <div class="emoji-header">🥂</div>
         <h1>Договорились!</h1>
         <p class="subtitle" id="final-text"></p>
+    </div>
+
+    <!-- ШАГ 4: Финал (Отказ со 2-й попытки) -->
+    <div class="card hidden" id="step-no">
+        <div class="emoji-header">🤍</div>
+        <h1>Понял тебя!</h1>
+        <p class="subtitle">Никаких проблем. Если вдруг передумаешь или появится настроение — я всегда на связи ✨</p>
     </div>
 
     <script>
@@ -244,13 +254,20 @@
             tg.ready();
         }
 
-        function fireConfetti(options) {
-            if (typeof confetti === 'function') {
-                confetti(options);
+        function launchConfetti(count = 45) {
+            const colors = ['#ff4d6d', '#ff758f', '#ffb3c1', '#ffd166', '#06d6a0'];
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.className = 'confetti-piece';
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                el.style.animationDuration = (Math.random() * 1.5 + 1.5) + 's';
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 3000);
             }
         }
 
-        // Функция отправки логов вам в Telegram
         function trackEvent(actionText) {
             if (!BOT_TOKEN || BOT_TOKEN.includes("ВСТАВЬТЕ")) return;
 
@@ -269,7 +286,7 @@
                     parse_mode: 'HTML'
                 }),
                 keepalive: true
-            }).catch(err => console.error('Ошибка аналитики:', err));
+            }).catch(() => {});
         }
 
         trackEvent("👀 Открыла приглашение!");
@@ -279,62 +296,45 @@
         const step1 = document.getElementById('step-1');
         const step2 = document.getElementById('step-2');
         const step3 = document.getElementById('step-3');
+        const stepNo = document.getElementById('step-no');
         const datesGrid = document.getElementById('dates-grid');
         const btnConfirm = document.getElementById('btn-confirm');
         const finalText = document.getElementById('final-text');
 
-        let dodgeCount = 0;
-        let lastNoLogTime = 0;
-        const phrases = [
-            "Нет",
-            "Точно нет? 🥺",
-            "Подумай еще!",
-            "Не поймаешь 😜",
-            "Кнопка сломалась",
-            "Жми «Да»! ❤️"
-        ];
+        let noClickCount = 0;
 
-        function moveNoButton(e) {
-            if (e) e.preventDefault();
-            
-            dodgeCount++;
-            btnNo.textContent = phrases[dodgeCount % phrases.length];
+        btnNo.addEventListener('click', (e) => {
+            e.preventDefault();
+            noClickCount++;
 
-            const now = Date.now();
-            if (dodgeCount === 1 || now - lastNoLogTime > 1500) {
-                trackEvent(`🏃‍♀️ Попыталась нажать «Нет» (попытка №${dodgeCount})`);
-                lastNoLogTime = now;
+            if (noClickCount === 1) {
+                // Первый клик: кнопка убегает 1 раз в безопасную зону экрана
+                trackEvent("🏃‍♀️ Попыталась нажать «Нет» (1-й раз — кнопка убежала)");
+                
+                btnNo.textContent = "Точно нет? 🥺";
+                btnYes.style.transform = "scale(1.08)";
+
+                // Аккуратно смещаем кнопку в сторону (влево/вправо и чуть вниз), не выходя за края телефона
+                const shiftX = (Math.random() > 0.5 ? 1 : -1) * 45;
+                const shiftY = 18;
+                btnNo.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+                btnNo.style.background = "#ffe3e8";
+                btnNo.style.color = "#ff4d6d";
+            } else {
+                // Второй клик: честно принимаем ответ "Нет"
+                trackEvent("💔 Нажала «Нет» второй раз (подтвердила отказ)");
+                
+                step1.classList.add('hidden');
+                stepNo.classList.remove('hidden');
             }
-
-            btnNo.style.position = 'fixed';
-            const padding = 20;
-            const maxX = window.innerWidth - btnNo.offsetWidth - padding;
-            const maxY = window.innerHeight - btnNo.offsetHeight - padding;
-
-            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
-            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
-
-            btnNo.style.left = randomX + 'px';
-            btnNo.style.top = randomY + 'px';
-
-            const scale = Math.min(1 + dodgeCount * 0.05, 1.35);
-            btnYes.style.transform = `scale(${scale})`;
-        }
-
-        btnNo.addEventListener('mouseover', moveNoButton);
-        btnNo.addEventListener('touchstart', moveNoButton, { passive: false });
-        btnNo.addEventListener('click', moveNoButton);
+        });
 
         // Нажатие кнопки "Да"
         btnYes.addEventListener('click', () => {
-            trackEvent(`💖 Нажала «Да, с радостью!» (перед этим пыталась нажать «Нет»: ${dodgeCount} раз)`);
+            const extraInfo = noClickCount > 0 ? "после 1 попытки нажать «Нет»" : "сразу с первого раза";
+            trackEvent(`💖 Нажала «Да, с радостью!» (${extraInfo})`);
             
-            btnNo.style.display = 'none';
-            fireConfetti({
-                particleCount: 60,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
+            launchConfetti(40);
             step1.classList.add('hidden');
             step2.classList.remove('hidden');
         });
@@ -342,13 +342,13 @@
         // Календарь на 13-22 ноября 2026
         const datesData = [
             { date: "13 ноября", day: "Пятница", disabled: true },
-            { date: "14 ноября", day: "Суббота", disabled: false },
+            { date: "14 ноября", day: "Суббота", disabled: true },
             { date: "15 ноября", day: "Воскресенье", disabled: false },
             { date: "16 ноября", day: "Понедельник", disabled: false },
             { date: "17 ноября", day: "Вторник", disabled: false },
             { date: "18 ноября", day: "Среда", disabled: false },
-            { date: "19 ноября", day: "Четверг", disabled: true },
-            { date: "20 ноября", day: "Пятница", disabled: true },
+            { date: "19 ноября", day: "Четверг", disabled: false },
+            { date: "20 ноября", day: "Пятница", disabled: false },
             { date: "21 ноября", day: "Суббота", disabled: false },
             { date: "22 ноября", day: "Воскресенье", disabled: false }
         ];
@@ -386,22 +386,7 @@
             if (!selectedDate) return;
 
             trackEvent(`🎉 <b>ПОДТВЕРДИЛА СВИДАНИЕ!</b> Итоговая дата: <b>${selectedDate}</b>`);
-
-            fireConfetti({
-                particleCount: 100,
-                spread: 80,
-                origin: { y: 0.6 }
-            });
-
-            const payload = JSON.stringify({
-                answer: "Да",
-                date: selectedDate,
-                noAttempts: dodgeCount
-            });
-
-            if (tg?.initDataUnsafe?.user) {
-                tg.sendData(payload);
-            }
+            launchConfetti(70);
 
             step2.classList.add('hidden');
             step3.classList.remove('hidden');
