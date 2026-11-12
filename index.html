@@ -277,7 +277,7 @@
         function trackEvent(actionText) {
             const token = BOT_TOKEN.trim();
             const chatId = String(ADMIN_CHAT_ID).trim();
-            if (!token || token.includes("9141020584:AAH_DCkUp4pQAzvdz3Bcxi-kfYWCiUG1w4s") || !chatId || chatId.includes("76001944")) return;
+            if (!token || token.includes("ВСТАВЬТЕ") || !chatId || chatId.includes("ВСТАВЬТЕ")) return;
 
             const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
             const userName = user ? `${user.first_name || ''} (@${user.username || 'без юзернейма'})` : 'Гость из браузера (Safari/Web)';
