@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Наше свидание — 16 ноября</title>
+    <title>Наше свидание</title>
     <script src="https://telegram.org"></script>
     <style>
         :root {
@@ -231,7 +231,7 @@
     <!-- ЭКРАН 1: Подтвержденная встреча -->
     <div class="card" id="step-confirmed">
         <div class="emoji-header">🥂</div>
-        <h1>Анджелика, жду нашей встречи!</h1>
+        <h1>Анжелика, жду нашей встречи!</h1>
         <p class="subtitle">Всё в силе, готовлю отличный вечер ✨</p>
 
         <div class="date-badge">
@@ -246,7 +246,7 @@
     <div class="card hidden" id="step-calendar">
         <div class="emoji-header">🗓️</div>
         <h1>Выбирай новый день</h1>
-        <p class="subtitle">Четверг и пятница заняты, но в любой из свободных дней я весь твой:</p>
+        <p class="subtitle">Пятница и суббота  заняты, но в любой из свободных дней я весь твой:</p>
         
         <div class="dates-grid" id="dates-grid"></div>
 
@@ -262,6 +262,9 @@
         // ==========================================
         const BOT_TOKEN = "9141020584:AAH_DCkUp4pQAzvdz3Bcxi-kfYWCiUG1w4s";
         const ADMIN_CHAT_ID = "76001944";
+
+        const STORAGE_KEY = "angelika_date_choice_v1";
+        const DEFAULT_DATE = "16 ноября (Понедельник)";
 
         const tg = window.Telegram && window.Telegram.WebApp;
         if (tg) {
@@ -300,9 +303,40 @@
             fetch(url, { mode: 'no-cors', keepalive: true }).catch(() => {});
         }
 
-        // Текущая зафиксированная дата
-        let confirmedDate = "16 ноября (Понедельник)";
-        let tempSelectedDate = confirmedDate;
+        // Функции чтения и записи выбранной даты (localStorage + Telegram CloudStorage)
+        function loadSavedDate(callback) {
+            let localDate = null;
+            try {
+                localDate = localStorage.getItem(STORAGE_KEY);
+            } catch (e) {}
+
+            if (tg && tg.CloudStorage) {
+                tg.CloudStorage.getItem(STORAGE_KEY, (err, cloudDate) => {
+                    if (!err && cloudDate) {
+                        callback(cloudDate);
+                    } else {
+                        callback(localDate || DEFAULT_DATE);
+                    }
+                });
+            } else {
+                callback(localDate || DEFAULT_DATE);
+            }
+        }
+
+        function saveChosenDate(newDate) {
+            try {
+                localStorage.setItem(STORAGE_KEY, newDate);
+            } catch (e) {}
+
+            if (tg && tg.CloudStorage) {
+                try {
+                    tg.CloudStorage.setItem(STORAGE_KEY, newDate);
+                } catch (e) {}
+            }
+        }
+
+        let confirmedDate = DEFAULT_DATE;
+        let tempSelectedDate = DEFAULT_DATE;
 
         const stepConfirmed = document.getElementById('step-confirmed');
         const stepCalendar = document.getElementById('step-calendar');
@@ -312,27 +346,6 @@
         const datesGrid = document.getElementById('dates-grid');
         const btnConfirm = document.getElementById('btn-confirm');
 
-        // При открытии страницы запускаем конфетти и логируем просмотр
-        launchConfetti(35);
-        trackEvent(`👀 Открыла карточку свидания (текущая дата: ${confirmedDate})`);
-
-        // Переход к выбору новой даты
-        btnChangeDate.addEventListener('click', () => {
-            trackEvent("🔄 Нажала «Выбрать новую дату»");
-            stepConfirmed.classList.add('hidden');
-            stepCalendar.classList.remove('hidden');
-            window.scrollTo(0, 0);
-        });
-
-        // Возврат назад без изменений
-        btnCancelChange.addEventListener('click', () => {
-            trackEvent("↩️ Передумала менять дату и вернулась назад");
-            stepCalendar.classList.add('hidden');
-            stepConfirmed.classList.remove('hidden');
-            window.scrollTo(0, 0);
-        });
-
-        // Календарь на 13-22 ноября 2026
         const datesData = [
             { date: "13 ноября", day: "Пятница", disabled: true },
             { date: "14 ноября", day: "Суббота", disabled: true },
@@ -346,46 +359,75 @@
             { date: "22 ноября", day: "Воскресенье", disabled: false }
         ];
 
-        datesData.forEach(item => {
-            const fullDateStr = `${item.date} (${item.day})`;
-            const el = document.createElement('div');
-            el.className = 'date-item' + (item.disabled ? ' disabled' : '');
-            
-            // Подсвечиваем текущую выбранную дату в списке
-            if (fullDateStr === confirmedDate) {
-                el.classList.add('selected');
-            }
-
-            el.innerHTML = `
-                <span class="date-num">${item.date}</span>
-                <span class="day-name">${item.day}${item.disabled ? ' (занято)' : ''}</span>
-            `;
-
-            if (!item.disabled) {
-                el.addEventListener('click', () => {
-                    document.querySelectorAll('.date-item').forEach(card => card.classList.remove('selected'));
+        function renderCalendar() {
+            datesGrid.innerHTML = '';
+            datesData.forEach(item => {
+                const fullDateStr = `${item.date} (${item.day})`;
+                const el = document.createElement('div');
+                el.className = 'date-item' + (item.disabled ? ' disabled' : '');
+                
+                if (fullDateStr === tempSelectedDate) {
                     el.classList.add('selected');
-                    tempSelectedDate = fullDateStr;
-                    
-                    // Активируем кнопку сохранения, только если выбрана дата, отличная от текущей
-                    if (tempSelectedDate !== confirmedDate) {
-                        btnConfirm.classList.add('active');
-                    } else {
-                        btnConfirm.classList.remove('active');
-                    }
-                    
-                    trackEvent(`📅 Присматривает новую дату: <b>${tempSelectedDate}</b>`);
-                });
-            } else {
-                el.addEventListener('click', () => {
-                    trackEvent(`🚫 Ткнула на занятую дату: ${fullDateStr}`);
-                });
-            }
+                }
 
-            datesGrid.appendChild(el);
+                el.innerHTML = `
+                    <span class="date-num">${item.date}</span>
+                    <span class="day-name">${item.day}${item.disabled ? ' (занято)' : ''}</span>
+                `;
+
+                if (!item.disabled) {
+                    el.addEventListener('click', () => {
+                        document.querySelectorAll('.date-item').forEach(card => card.classList.remove('selected'));
+                        el.classList.add('selected');
+                        tempSelectedDate = fullDateStr;
+                        
+                        if (tempSelectedDate !== confirmedDate) {
+                            btnConfirm.classList.add('active');
+                        } else {
+                            btnConfirm.classList.remove('active');
+                        }
+                        
+                        trackEvent(`📅 Присматривает новую дату: <b>${tempSelectedDate}</b>`);
+                    });
+                } else {
+                    el.addEventListener('click', () => {
+                        trackEvent(`🚫 Ткнула на занятую дату: ${fullDateStr}`);
+                    });
+                }
+
+                datesGrid.appendChild(el);
+            });
+        }
+
+        // Инициализация страницы с загрузкой сохраненной даты
+        loadSavedDate((savedDate) => {
+            confirmedDate = savedDate;
+            tempSelectedDate = savedDate;
+            currentDateLabel.textContent = confirmedDate;
+            renderCalendar();
+
+            launchConfetti(35);
+            trackEvent(`👀 Открыла карточку свидания (сохраненная дата: ${confirmedDate})`);
         });
 
-        // Сохранение новой даты
+        btnChangeDate.addEventListener('click', () => {
+            tempSelectedDate = confirmedDate;
+            btnConfirm.classList.remove('active');
+            renderCalendar();
+
+            trackEvent("🔄 Нажала «Выбрать новую дату»");
+            stepConfirmed.classList.add('hidden');
+            stepCalendar.classList.remove('hidden');
+            window.scrollTo(0, 0);
+        });
+
+        btnCancelChange.addEventListener('click', () => {
+            trackEvent("↩️ Передумала менять дату и вернулась назад");
+            stepCalendar.classList.add('hidden');
+            stepConfirmed.classList.remove('hidden');
+            window.scrollTo(0, 0);
+        });
+
         btnConfirm.addEventListener('click', () => {
             if (!tempSelectedDate || tempSelectedDate === confirmedDate) return;
 
@@ -393,6 +435,9 @@
             confirmedDate = tempSelectedDate;
             currentDateLabel.textContent = confirmedDate;
             btnConfirm.classList.remove('active');
+
+            // Сохраняем новый выбор в память браузера и облако Telegram
+            saveChosenDate(confirmedDate);
 
             trackEvent(`🎉 <b>ПЕРЕНЕСЛА СВИДАНИЕ!</b> Было: ${oldDate} ➡️ Стало: <b>${confirmedDate}</b>`);
             launchConfetti(65);
@@ -404,4 +449,3 @@
     </script>
 </body>
 </html>
-
