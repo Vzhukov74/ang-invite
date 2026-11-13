@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Приглашение для Анжелики</title>
+    <title>Наше свидание — 16 ноября</title>
     <script src="https://telegram.org"></script>
     <style>
         :root {
@@ -43,7 +43,7 @@
         .card {
             background: var(--card-bg);
             border-radius: 26px;
-            padding: 24px 20px;
+            padding: 28px 20px;
             width: 100%;
             max-width: 400px;
             box-shadow: 0 20px 40px rgba(255, 77, 109, 0.15);
@@ -54,8 +54,8 @@
         }
 
         .emoji-header {
-            font-size: 46px;
-            margin-bottom: 10px;
+            font-size: 50px;
+            margin-bottom: 12px;
             animation: pulse 2s infinite;
         }
 
@@ -66,55 +66,72 @@
         }
 
         h1 {
-            font-size: 20px;
+            font-size: 21px;
             font-weight: 700;
             line-height: 1.3;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         p.subtitle {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--text-muted);
-            margin-bottom: 18px;
+            margin-bottom: 20px;
             line-height: 1.45;
         }
 
-        .buttons-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-            justify-content: center;
-            min-height: 116px;
+        .date-badge {
+            background: #fff0f3;
+            border: 2px solid #ffccd5;
+            color: var(--primary);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 22px;
+        }
+
+        .date-badge-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .date-badge-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
         }
 
         .btn {
             border: none;
             border-radius: 16px;
             padding: 15px 24px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.25s ease;
             width: 100%;
-            max-width: 260px;
         }
 
-        .btn-yes {
+        .btn-primary {
             background: var(--primary);
             color: white;
             box-shadow: 0 8px 20px rgba(255, 77, 109, 0.35);
-            z-index: 2;
         }
 
-        .btn-yes:active {
-            transform: scale(0.96);
+        .btn-primary:active {
+            transform: scale(0.97);
         }
 
-        .btn-no {
+        .btn-secondary {
             background: #f1f3f5;
-            color: var(--text-muted);
-            z-index: 10;
+            color: var(--text-main);
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.97);
+            background: #e9ecef;
         }
 
         .hidden {
@@ -175,11 +192,13 @@
             color: var(--disabled-text);
         }
 
+        .actions-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
         .btn-confirm {
-            background: var(--primary);
-            color: white;
-            width: 100%;
-            max-width: 100%;
             opacity: 0.5;
             pointer-events: none;
         }
@@ -187,7 +206,6 @@
         .btn-confirm.active {
             opacity: 1;
             pointer-events: auto;
-            box-shadow: 0 8px 20px rgba(255, 77, 109, 0.35);
         }
 
         .confetti-piece {
@@ -210,41 +228,32 @@
 </head>
 <body>
 
-    <!-- ШАГ 1: Вопрос -->
-    <div class="card" id="step-1">
-        <div class="emoji-header">💌</div>
-        <h1>Анжелика, хочешь увидеться с Владом?</h1>
-        <p class="subtitle">Обещаю отличный вечер, вкусную еду и хорошее настроение ✨</p>
-        
-        <div class="buttons-wrapper">
-            <button class="btn btn-yes" id="btn-yes">Да, с радостью! 💖</button>
-            <button class="btn btn-no" id="btn-no">Нет</button>
+    <!-- ЭКРАН 1: Подтвержденная встреча -->
+    <div class="card" id="step-confirmed">
+        <div class="emoji-header">🥂</div>
+        <h1>Анджелика, жду нашей встречи!</h1>
+        <p class="subtitle">Всё в силе, готовлю отличный вечер ✨</p>
+
+        <div class="date-badge">
+            <div class="date-badge-title">Выбранная дата</div>
+            <div class="date-badge-value" id="current-date-label">16 ноября (Понедельник)</div>
         </div>
+
+        <button class="btn btn-secondary" id="btn-change-date">Выбрать новую дату 🗓️</button>
     </div>
 
-    <!-- ШАГ 2: Выбор даты -->
-    <div class="card hidden" id="step-2">
+    <!-- ЭКРАН 2: Выбор новой даты -->
+    <div class="card hidden" id="step-calendar">
         <div class="emoji-header">🗓️</div>
-        <h1>Ура! Выбирай удобный день</h1>
+        <h1>Выбирай новый день</h1>
         <p class="subtitle">Четверг и пятница заняты, но в любой из свободных дней я весь твой:</p>
         
         <div class="dates-grid" id="dates-grid"></div>
 
-        <button class="btn btn-confirm" id="btn-confirm">Подтвердить дату ✨</button>
-    </div>
-
-    <!-- ШАГ 3: Финал (Согласие) -->
-    <div class="card hidden" id="step-3">
-        <div class="emoji-header">🥂</div>
-        <h1>Договорились!</h1>
-        <p class="subtitle" id="final-text"></p>
-    </div>
-
-    <!-- ШАГ 4: Финал (Отказ со 2-й попытки) -->
-    <div class="card hidden" id="step-no">
-        <div class="emoji-header">🤍</div>
-        <h1>Понял тебя!</h1>
-        <p class="subtitle">Никаких проблем. Если вдруг передумаешь или появится настроение — я всегда на связи ✨</p>
+        <div class="actions-row">
+            <button class="btn btn-primary btn-confirm" id="btn-confirm">Сохранить новую дату ✨</button>
+            <button class="btn btn-secondary" id="btn-cancel-change">Оставить как было</button>
+        </div>
     </div>
 
     <script>
@@ -260,7 +269,7 @@
             tg.ready();
         }
 
-        function launchConfetti(count = 45) {
+        function launchConfetti(count = 40) {
             const colors = ['#ff4d6d', '#ff758f', '#ffb3c1', '#ffd166', '#06d6a0'];
             for (let i = 0; i < count; i++) {
                 const el = document.createElement('div');
@@ -280,7 +289,7 @@
             if (!token || token.includes("ВСТАВЬТЕ") || !chatId || chatId.includes("ВСТАВЬТЕ")) return;
 
             const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-            const userName = user ? `${user.first_name || ''} (@${user.username || 'без юзернейма'})` : 'Гость из браузера (Safari/Web)';
+            const userName = user ? `${user.first_name || ''} (@${user.username || 'без юзернейма'})` : 'Гость из браузера';
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             
             const message = `📊 <b>Действие в приглашении</b>\n👤 Кто: ${userName}\n🕒 Время: ${time}\n👉 Событие: ${actionText}`;
@@ -291,51 +300,35 @@
             fetch(url, { mode: 'no-cors', keepalive: true }).catch(() => {});
         }
 
+        // Текущая зафиксированная дата
+        let confirmedDate = "16 ноября (Понедельник)";
+        let tempSelectedDate = confirmedDate;
 
-        trackEvent("👀 Открыла приглашение!");
-
-        const btnYes = document.getElementById('btn-yes');
-        const btnNo = document.getElementById('btn-no');
-        const step1 = document.getElementById('step-1');
-        const step2 = document.getElementById('step-2');
-        const step3 = document.getElementById('step-3');
-        const stepNo = document.getElementById('step-no');
+        const stepConfirmed = document.getElementById('step-confirmed');
+        const stepCalendar = document.getElementById('step-calendar');
+        const currentDateLabel = document.getElementById('current-date-label');
+        const btnChangeDate = document.getElementById('btn-change-date');
+        const btnCancelChange = document.getElementById('btn-cancel-change');
         const datesGrid = document.getElementById('dates-grid');
         const btnConfirm = document.getElementById('btn-confirm');
-        const finalText = document.getElementById('final-text');
 
-        let noClickCount = 0;
+        // При открытии страницы запускаем конфетти и логируем просмотр
+        launchConfetti(35);
+        trackEvent(`👀 Открыла карточку свидания (текущая дата: ${confirmedDate})`);
 
-        btnNo.addEventListener('click', (e) => {
-            e.preventDefault();
-            noClickCount++;
-
-            if (noClickCount === 1) {
-                trackEvent("🏃‍♀️ Попыталась нажать «Нет» (1-й раз — кнопка убежала)");
-                
-                btnNo.textContent = "Точно нет? 🥺";
-                btnYes.style.transform = "scale(1.08)";
-
-                const shiftX = (Math.random() > 0.5 ? 1 : -1) * 45;
-                const shiftY = 18;
-                btnNo.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
-                btnNo.style.background = "#ffe3e8";
-                btnNo.style.color = "#ff4d6d";
-            } else {
-                trackEvent("💔 Нажала «Нет» второй раз (подтвердила отказ)");
-                
-                step1.classList.add('hidden');
-                stepNo.classList.remove('hidden');
-            }
+        // Переход к выбору новой даты
+        btnChangeDate.addEventListener('click', () => {
+            trackEvent("🔄 Нажала «Выбрать новую дату»");
+            stepConfirmed.classList.add('hidden');
+            stepCalendar.classList.remove('hidden');
+            window.scrollTo(0, 0);
         });
 
-        btnYes.addEventListener('click', () => {
-            const extraInfo = noClickCount > 0 ? "после 1 попытки нажать «Нет»" : "сразу с первого раза";
-            trackEvent(`💖 Нажала «Да, с радостью!» (${extraInfo})`);
-            
-            launchConfetti(40);
-            step1.classList.add('hidden');
-            step2.classList.remove('hidden');
+        // Возврат назад без изменений
+        btnCancelChange.addEventListener('click', () => {
+            trackEvent("↩️ Передумала менять дату и вернулась назад");
+            stepCalendar.classList.add('hidden');
+            stepConfirmed.classList.remove('hidden');
             window.scrollTo(0, 0);
         });
 
@@ -353,11 +346,16 @@
             { date: "22 ноября", day: "Воскресенье", disabled: false }
         ];
 
-        let selectedDate = null;
-
         datesData.forEach(item => {
+            const fullDateStr = `${item.date} (${item.day})`;
             const el = document.createElement('div');
             el.className = 'date-item' + (item.disabled ? ' disabled' : '');
+            
+            // Подсвечиваем текущую выбранную дату в списке
+            if (fullDateStr === confirmedDate) {
+                el.classList.add('selected');
+            }
+
             el.innerHTML = `
                 <span class="date-num">${item.date}</span>
                 <span class="day-name">${item.day}${item.disabled ? ' (занято)' : ''}</span>
@@ -367,31 +365,43 @@
                 el.addEventListener('click', () => {
                     document.querySelectorAll('.date-item').forEach(card => card.classList.remove('selected'));
                     el.classList.add('selected');
-                    selectedDate = `${item.date} (${item.day})`;
-                    btnConfirm.classList.add('active');
+                    tempSelectedDate = fullDateStr;
                     
-                    trackEvent(`📅 Выбрала в календаре: <b>${selectedDate}</b> (пока без подтверждения)`);
+                    // Активируем кнопку сохранения, только если выбрана дата, отличная от текущей
+                    if (tempSelectedDate !== confirmedDate) {
+                        btnConfirm.classList.add('active');
+                    } else {
+                        btnConfirm.classList.remove('active');
+                    }
+                    
+                    trackEvent(`📅 Присматривает новую дату: <b>${tempSelectedDate}</b>`);
                 });
             } else {
                 el.addEventListener('click', () => {
-                    trackEvent(`🚫 Ткнула на занятую дату: ${item.date} (${item.day})`);
+                    trackEvent(`🚫 Ткнула на занятую дату: ${fullDateStr}`);
                 });
             }
 
             datesGrid.appendChild(el);
         });
 
+        // Сохранение новой даты
         btnConfirm.addEventListener('click', () => {
-            if (!selectedDate) return;
+            if (!tempSelectedDate || tempSelectedDate === confirmedDate) return;
 
-            trackEvent(`🎉 <b>ПОДТВЕРДИЛА СВИДАНИЕ!</b> Итоговая дата: <b>${selectedDate}</b>`);
-            launchConfetti(70);
+            const oldDate = confirmedDate;
+            confirmedDate = tempSelectedDate;
+            currentDateLabel.textContent = confirmedDate;
+            btnConfirm.classList.remove('active');
 
-            step2.classList.add('hidden');
-            step3.classList.remove('hidden');
-            finalText.innerHTML = `Жду нашей встречи <b>${selectedDate}</b>! Влад уже получил твой ответ ❤️`;
+            trackEvent(`🎉 <b>ПЕРЕНЕСЛА СВИДАНИЕ!</b> Было: ${oldDate} ➡️ Стало: <b>${confirmedDate}</b>`);
+            launchConfetti(65);
+
+            stepCalendar.classList.add('hidden');
+            stepConfirmed.classList.remove('hidden');
             window.scrollTo(0, 0);
         });
     </script>
 </body>
 </html>
+
